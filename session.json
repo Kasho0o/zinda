@@ -1,67 +1,27 @@
-import json
-import requests
+# Load real session from file
+with open("session.json") as f:
+    real_session = json.load(f)
+    cookies = real_session.get("cookies", [])
+    cookies_str = "; ".join([f"{c['name']}={c['value']}" for c in cookies]) if cookies else ""
 
-def load_session_and_check():
-    """Load session and check slots with proper error handling"""
+    # 🔥 Extract ICPPLUS from page source (not cookies!)
+    # The site uses server-side session ID in the HTML (hidden field or URL)
+    import requests
+    response = requests.get(real_session["url"])
+    import re
+    icpplus_match = re.search(r"ICPPLUS=([A-Za-z0-9]+)", response.text)
+    jsessionid_match = re.search(r"JSESSIONID=([A-Za-z0-9]+)", response.text)
     
-    try:
-        # Load session from file
-        with open("session.json") as f:
-            real_session = json.load(f)
-            
-        cookies = real_session.get("cookies", [])
-        
-        # Check if we have cookies
-        if not cookies:
-            print("⚠️ Warning: No cookies found in session.json")
-            print("🔍 Will try without cookies...")
-            cookies_str = ""
-        else:
-            # Convert cookies to string format
-            cookies_str = "; ".join([f"{c['name']}={c['value']}" for c in cookies])
-            print(f"✅ Loaded {len(cookies)} cookies")
-        
-        # Create headers
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            "Accept-Language": "es-ES,es;q=0.5",
-            "Accept-Encoding": "gzip, deflate",
-            "Connection": "keep-alive",
-            "Upgrade-Insecure-Requests": "1",  # ✅ FIXED TYPO
-        }
-        
-        # Only add Cookie header if we have cookies
-        if cookies_str:
-            headers["Cookie"] = cookies_str
-        
-        # Test the session
-        url = "https://icp.administracionelectronica.gob.es/icpplustiem/index.html?mDes=N"
-        
-        print(f"🌐 Testing session with URL: {url}")
-        print(f"🍪 Cookie header: {'Present' if cookies_str else 'Empty'}")
-        
-        response = requests.get(url, headers=headers, timeout=15)
-        
-        print(f"📊 Response status: {response.status_code}")
-        print(f"📏 Response length: {len(response.text)} characters")
-        
-        return response, headers
-        
-    except FileNotFoundError:
-        print("❌ session.json file not found!")
-        return None, None
-    except json.JSONDecodeError:
-        print("❌ Invalid JSON in session.json!")
-        return None, None
-    except Exception as e:
-        print(f"❌ Error: {e}")
-        return None, None
+    ICPPLUS = icpplus_match.group(1) if icpplus_match else "NOT_FOUND"
+    JSESSIONID = jsessionid_match.group(1) if jsessionid_match else "NOT_FOUND"
 
-# Test the corrected function
-response, headers = load_session_and_check()
-
-if response:
-    print("✅ Session test completed")
-else:
-    print("❌ Session test failed")
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
+        "Cookie": f"ICPPLUS={ICPPLUS}; JSESSIONID={JSESSIONID}",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "es-ES,es;q=0.5",
+        "Accept-Encoding": "gzip, deflate",
+        "Connection": "keep-alive",
+        "Upgrade-Insecure-requests": "1",
+    }
+    cookies_dict = {"ICPPLUS": ICPPLUS, "JSESSIONID": JSESSIONID}
