@@ -9,7 +9,7 @@ def session_keeper():
     session = load_session()
     headers = {
         "Content-Type": "application/x-www-form-urlencoded",
-        "Cookie": f"ICPPLUS={session['ICPPLUS']}; JSESSIONID={session['JSESSIONID']}",
+        ""Cookie": f"ICPPLUS=your-real-ICPPLUS-here; JSESSIONID=your-real-JSESSIONID-here",",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
     }
     while True:
