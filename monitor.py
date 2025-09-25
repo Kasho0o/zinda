@@ -26,7 +26,7 @@ def check_slots():
     session = load_session()
     headers = {
         "Content-Type": "application/x-www-form-urlencoded",
-        "Cookie": f"ICPPLUS={session['ICPPLUS']}; JSESSIONID={session['JSESSIONID']}",
+        "Cookie": f"ICPPLUS={session['ICPPLUS']}; JSESSIONID={session['JSESSIONID']};",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
     }
     for day in range(1, 31):
